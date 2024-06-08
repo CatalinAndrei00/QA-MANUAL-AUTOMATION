@@ -1,0 +1,94 @@
+//Exercitiul 1:
+//Scrieti un program care afiseaza de 6 ori propozitia Ana are 24 de ani.Fratele ei, David, e cu 6 ani mai mic. Scrieti un program care afiseaza varsta lui David.
+
+//Exercitiul 2:
+//Scrieti un program care contine 4 metode, 2 de tip void, una sa fie de tip String si alta de tip int.
+//a) Cele void sa contina variabile locale de tipul: int/double/float, variabile care vor fi initializate cu valorile primite ca si parametru de catre functie si sa le afiseze.
+
+//b) Metoda string sa primeasca 5 parametrii de tip string si sa returneze un singur string compus din cei 5 parametrii.
+
+//c) Metoda int de primeasca 3 parametrii de tipul int/double/float si verifice care numar este par si care este impar si sa returneze suma dintre 1 numar par si unul impar.
+
+
+import java.text.ParseException;
+import java.util.Objects;
+
+import static java.lang.String.*;
+
+public class Tema2 {
+    public static void main(String[] args) {
+        //Exercitiul 1
+        System.out.println("Exercitiul 1");
+        int x = 0;
+        while (x <= 5) {
+            System.out.println("Ana are 24 de ani.");
+            x++;
+        }
+        int VarstaDavid = 24-6;
+        System.out.println("Varsta luni David este:" + VarstaDavid);
+
+        //Exercitiul 2
+        System.out.println("Exercitiul 2");
+
+        //a)
+        variabile(3,22.22D, 11.11F); // se poate pune orice numar
+        variab(5, 66.55D, 142.3F); // se poate pune orice numar
+
+        //b)
+        System.out.println(Compus("1 ","2 ","3 ","a ","b ")); // se poate pune orice caracter
+
+        //c)
+        parimpar(2, 33.53D,11.22F);
+        System.out.println(parimpar(2, 33.53D,11.22F));
+    }
+
+    //a)
+    public static void variabile (int nr1, double nr2, float nr3 ) {
+        System.out.println(nr1);
+        System.out.println(nr2);
+        System.out.println(nr3);
+    }
+    public static void variab (int nr1, double nr2, float nr3) {
+        System.out.println(nr1);
+        System.out.println(nr2);
+        System.out.println(nr3);
+    }
+
+    //b)
+    public static String Compus (String str1, String str2, String str3, String str4, String str5) {
+        String compus = String.valueOf(str1 + str2 + str3+ str4 + str5);
+        return Objects.toString(compus);
+    }
+
+    //c)
+    public static int parimpar(int v1, double v2, float v3) {
+        int par = 0;
+        int impar = 0;
+
+        if (v1 % 2 == 0) {
+            par = v1;
+            System.out.println(par + " este numar par.");
+        } else {
+            impar = v1;
+            System.out.println(impar + " este numar impar.");
+        }
+
+        if ((int) v2 % 2 == 0) {
+            par = (int) v2;
+            System.out.println(par + " este numar par.");
+        } else {
+            impar = (int) v2;
+            System.out.println(impar + " este numar impar.");
+        }
+
+        if ((int) v3 % 2 == 0) {
+            par = (int) v3;
+            System.out.println(par + " este numar par.");
+        } else {
+            impar = (int) v3;
+            System.out.println(impar + " este numar impar.");
+        }
+
+        return par + impar;
+    }
+}
