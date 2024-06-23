@@ -1,0 +1,209 @@
+import org.openqa.selenium.WebDriver;
+
+public class WebDriverContext {
+
+    /** The driverinstance. */
+
+    private static InheritableThreadLocal<WebDriver> driverinstance = new InheritableThreadLocal<>();
+
+
+    /**
+     * Gets the driver.
+     *
+     * @return the driver
+     */
+
+    public static WebDriver getDriver() {
+        if (driverinstance.get() == null)
+            throw new IllegalStateException(
+                    "WebDriver has not been set, Please set WebDriver instance by WebDriverContext.setDriver...");
+        else
+            return driverinstance.get();
+    }
+
+
+    /**
+     * Sets the driver.
+     *
+     * @param driver the new driver
+     */
+
+    public static void setDriver(WebDriver driver) {
+        driverinstance.set(driver);
+    }
+
+    /**
+     * Removes the driver.
+     */
+
+    public static void removeDriver() {
+        driverinstance.remove();
+    }
+}
+
+
+.......................................................................................................................................................................
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+import java.util.concurrent.TimeUnit;
+
+public class BaseTest {
+
+    /** The driver. */
+
+    protected WebDriver driver;
+
+    /**
+     * Setup.
+     */
+
+    @BeforeTest
+    protected void setup() {
+// System.setProperty("webdriver.chrome.driver", Constants.CHROME_DRIVER_PATH);
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions ops = new ChromeOptions();
+        ops.addArguments("disable-infobars");
+        driver = new ChromeDriver(ops);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+
+        WebDriverContext.setDriver(driver);
+    }
+
+    /**
+     * Wrap up.
+     */
+
+    @AfterTest
+    public void wrapUp() {
+        if (driver != null) {
+            driver.close();
+            driver.quit();
+        }
+    }
+
+}
+
+............................................................................................................................................................................
+
+TEST SELENIUM VERIFICARE LOG IN
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.testng.annotations.Test;
+
+public class LogInMaven extends BaseTest {
+
+    @Test
+    public void LogInButtonTest() throws InterruptedException {
+        //locatori
+        String logInButton = "login2";
+        String insereazaUsername = "//input[@id=\"loginusername\"]";
+        String insereazaParola = "//input[@id=\"loginpassword\"]";
+        String logInInterior = "//button[text()= \"Log in\"]";
+
+        //deschide si navigheaza pe browser
+        driver.navigate().to("https://www.demoblaze.com/");
+
+        //elemente
+        WebElement logIn = driver.findElement(By.id(logInButton));
+        WebElement username = driver.findElement(By.xpath(insereazaUsername));
+        WebElement parola = driver.findElement(By.xpath(insereazaParola));
+        WebElement logInInt = driver.findElement(By.xpath(logInInterior));
+
+        //interior LogIn
+        logIn.click();
+        username.click();
+        username.sendKeys("catalinandrei");
+        Thread.sleep(1000);
+        parola.click();
+        parola.sendKeys("catalin123");
+        Thread.sleep(1000);
+        logInInt.click();
+        Thread.sleep(5000);
+
+    }
+}
+
+............................................................................................................................................................................
+
+TEST SELENIUM VERIFICARE SIGN UP
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.testng.annotations.Test;
+
+public class SignUpMaven extends BaseTest {
+
+    @Test
+    public void SignUpButtonTest() throws InterruptedException {
+        //locatori
+        String signUpButton = "signin2";
+        String insereazaUsername = "//input[@id=\"sign-username\"]";
+        String insereazaParola = "//input[@id=\"sign-password\"]";
+        String signUpInterior = "//button[text()=\"Sign up\"]";
+
+        //deschide si navigheaza pe browser
+        driver.navigate().to("https://www.demoblaze.com/");
+
+        //elemente
+        WebElement signUp = driver.findElement(By.id(signUpButton));
+        WebElement username = driver.findElement(By.xpath(insereazaUsername));
+        WebElement password = driver.findElement(By.xpath(insereazaParola));
+        WebElement signUpInInt = driver.findElement(By.xpath(signUpInterior));
+
+        //interior SignUp
+        signUp.click();
+        username.click();
+        username.sendKeys("catalinandrei");
+        Thread.sleep(1000);
+        password.click();
+        password.sendKeys("catalin123");
+        Thread.sleep(1000);
+        signUpInInt.click();
+        Thread.sleep(4000);
+    }
+}
+
+............................................................................................................................................................................
+
+VERIFICARE SELENIUM TELEFOANE SAMSUNG 
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.testng.annotations.Test;
+
+import java.util.List;
+
+public class DispozitiveSamsung extends BaseTest {
+
+    @Test
+    public void cautareDispozitiveSamsungTest() throws InterruptedException {
+        //locatori
+        String produse = "//h4[@class=\"card-title\"]"; // 9 produse
+
+        //deschide si navigheaza pe browser
+        driver.navigate().to("https://www.demoblaze.com/");
+
+        //elemente
+        List<WebElement>toateProdusele = driver.findElements(By.xpath(produse));
+
+        int numarSamsung = 0;
+        for(WebElement produs : toateProdusele) {
+            String produsText = produs.findElement(By.className("hrefch")).getText();
+            if(produsText.contains("Samsung")){
+                numarSamsung++;
+            }
+        }
+        System.out.println("Numar telefoane Samsung: "+ numarSamsung);
+
+        Thread.sleep(4000);
+
+    }
+}
+
