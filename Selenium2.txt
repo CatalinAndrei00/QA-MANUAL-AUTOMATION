@@ -1,0 +1,561 @@
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+public class BaseTest {
+    Random random = new Random();
+
+    /** The driver. */
+    protected WebDriver driver;
+    protected Wait<WebDriver> wait = new FluentWait<>(driver).withTimeout(Duration.ofSeconds(15))
+            .ignoring(NoSuchElementException.class)
+            .ignoring(StaleElementReferenceException.class);
+
+    /**
+     * Setup.
+     */
+    @BeforeTest
+    protected void setup() {
+//		System.setProperty("webdriver.chrome.driver", Constants.CHROME_DRIVER_PATH);
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions ops = new ChromeOptions();
+        //ops.addArguments("disable-infobars");
+        driver = new ChromeDriver(ops);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        WebDriverContext.setDriver(driver);
+    }
+
+    /**
+     * Wrap up.
+     */
+    @AfterTest
+    public void wrapUp() {
+        WebDriverContext.removeDriver();
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class Config {
+    public static String Url = "https://www.demoblaze.com/index.html";
+    public static List<String> phonesList = new ArrayList<>(List.of(new String[]{"Samsung galaxy s6"}));
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+import Pages.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+@Test
+public class E2ETests extends BaseTest{
+
+    private static final Logger log = LoggerFactory.getLogger(E2ETests.class);
+
+    @Test
+    public void OrderPhoneAndLaptopTest() throws InterruptedException {
+        //define pages
+        BasePage basePage = new BasePage(driver);
+        LoginPage loginPage;
+        HomePage homePage;
+        PhonesPage phonesPage;
+        LaptopsPage laptopsPage;
+        MonitorsPage monitorsPage;
+        ProductPage productPage;
+        CartPage cartPage;
+        PlaceOrderPopUpPage placeOrderPopUpPage;
+
+        String username = "test1901";
+        String password = "test1";
+
+        //act
+        basePage.GoTo(Config.Url);
+        loginPage = basePage.Login();
+        loginPage.FillInCredentials(username, password);
+        loginPage.ClickLogin();
+
+
+        //create Homepage object
+        homePage = new HomePage(basePage._driver);
+        phonesPage = homePage.OpenPhonesCategory();
+        productPage = phonesPage.ClickOnPhone(Config.phonesList.get(0));
+
+        productPage.AddToCart();
+        //productPage.Home();
+        cartPage = homePage.Cart();
+
+        //plaseaza comanda
+        cartPage.PlaceOrder();
+        placeOrderPopUpPage = new PlaceOrderPopUpPage(driver);
+        placeOrderPopUpPage.fillOrderDetails("Selenium", "Romania", "Poplaca", "1234-1234-1234-1234", 5,2024);
+
+        placeOrderPopUpPage.ClickPurchase();
+        placeOrderPopUpPage = new PlaceOrderPopUpPage(driver);
+
+
+        Assert.assertTrue(placeOrderPopUpPage.OrderSuccessfulMessageIsDisplayed());
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Action;
+import org.openqa.selenium.interactions.Actions;
+
+public class BasePage{
+
+    public WebDriver _driver;
+    public Actions actions;
+    public HeaderPage headerPage;
+
+    public BasePage(WebDriver driver){
+        this._driver = driver;
+        actions = new Actions(driver);
+    }
+
+    //locators
+
+    //find elements
+
+    //open browser and navigate
+    public void GoTo(String url){
+        _driver.get(url);
+    }
+
+    public LoginPage Login(){
+        headerPage = new HeaderPage(_driver);
+        headerPage.LoginPage();
+        return new LoginPage(_driver);
+    }
+
+    public SignUpPopUpPage SignUp(){
+        headerPage = new HeaderPage(_driver);
+        headerPage.OpenSignUpPage();
+        return new SignUpPopUpPage(_driver);
+    }
+
+    public HomePage Home(){
+        headerPage = new HeaderPage(_driver);
+        headerPage.HomePage();
+        return new HomePage(_driver);
+    }
+
+    public CartPage Cart(){
+        headerPage = new HeaderPage(_driver);
+        headerPage.CartPage();
+        return new CartPage(_driver);
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.ElementClickInterceptedException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class HeaderPage extends BasePage{
+    public HeaderPage(WebDriver driver){
+        super(driver);
+    }
+
+    //locators
+    By signUpButtonLocator = By.id("signin2");
+    By loginButtonLocator = By.id("login2");
+    By homeButtonLocator = By.cssSelector("li a[href=\"index.html\"]");
+    By cartButtonLocator = By.id("cartur");
+
+    //find elements
+    public WebElement signUpButton = _driver.findElement(signUpButtonLocator);
+    public WebElement loginButton = _driver.findElement(loginButtonLocator);
+    public WebElement homeButton = _driver.findElement(homeButtonLocator);
+    public WebElement cartButton = _driver.findElement(cartButtonLocator);
+
+
+    //signup method
+    public void OpenSignUpPage(){
+        try{
+            signUpButton.click();
+        }
+        catch(ElementClickInterceptedException ex){
+            signUpButton.click();
+        }
+    }
+
+    public void LoginPage(){
+        try{
+            loginButton.click();
+        }
+        catch(ElementClickInterceptedException ex){
+            loginButton.click();
+        }
+    }
+
+    public void HomePage(){
+        try{
+            homeButton.click();
+        }
+        catch(ElementClickInterceptedException ex){
+            homeButton.click();
+        }
+    }
+
+    public void CartPage(){
+        try{
+            cartButton.click();
+        }
+        catch(ElementClickInterceptedException ex){
+            cartButton.click();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class HomePage extends BasePage{
+
+    public HomePage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    By phonesLocator = By.cssSelector("a[onclick=\"byCat('phone')\"]");
+    By laptopsLocator = By.cssSelector("a[onclick=\"byCat('notebook')\"]");
+    By monitorsLocator = By.cssSelector("a[onclick=\"byCat('monitor')\"]");
+
+
+    //WebElements
+    WebElement phones = _driver.findElement(phonesLocator);
+    WebElement laptops = _driver.findElement(laptopsLocator);
+    WebElement monitors = _driver.findElement(monitorsLocator);
+
+
+    //Methods
+    public PhonesPage OpenPhonesCategory(){
+        phones.click();
+
+        return new PhonesPage(_driver);
+    }
+
+    public LaptopsPage OpenLaptopsCategory(){
+        laptops.click();
+
+        return new LaptopsPage(_driver);
+    }
+
+    public MonitorsPage OpenMonitorsCategory(){
+        monitors.click();
+
+        return new MonitorsPage(_driver);
+    }
+
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.*;
+
+public class LoginPage extends BasePage{
+    public LoginPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    private By usernameLocator = new By.ById("loginusername");
+    private By passwordLocator = new By.ById("loginpassword");
+    private By loginButtonLocator = By.cssSelector("button[onclick=\"logIn()\"]");
+
+    //WebElements
+    private WebElement usernameField = _driver.findElement(usernameLocator);
+    private WebElement passwordField = _driver.findElement(passwordLocator);
+    private WebElement loginButton = _driver.findElement(loginButtonLocator);
+
+    //Methods
+    public void FillInCredentials(String username, String password){
+        try{
+            usernameField.clear();
+            Thread.sleep(500);
+            usernameField.sendKeys(username);
+
+            passwordField.clear();
+            Thread.sleep(500);
+            passwordField.sendKeys(password);
+
+        }
+        catch (ElementNotInteractableException exception)
+        {
+            if (!usernameField.getText().equals(username)) {
+                usernameField.clear();
+                actions.moveToElement(usernameField).sendKeys(username).build().perform();
+            }
+
+            if (!passwordField.getText().isEmpty()) {
+                passwordField.clear();
+                actions.moveToElement(passwordField).sendKeys(password).build().perform();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void ClickLogin() throws InterruptedException {
+        try{
+            Thread.sleep(2000);
+           loginButton.click();
+            Thread.sleep(3000);
+        }
+        catch (ElementClickInterceptedException exception) {
+            Thread.sleep(2000);
+            loginButton.click();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class ProductPage extends BasePage{
+    public ProductPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    By addToCartLocator = By.xpath("//a[contains(text(), 'Add to cart')]");
+
+    //WebElements
+    WebElement addToCart = _driver.findElement(addToCartLocator);
+
+    //Methods
+    public void AddToCart() throws InterruptedException {
+        addToCart.click();
+
+        Thread.sleep(2000);
+        Alert alert = _driver.switchTo().alert();
+        alert.accept();
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class PhonesPage extends HomePage{
+    public PhonesPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    public By PhoneLocator(String phoneName){
+
+        return By.xpath("//h4[@class=\"card-title\"]/a[contains(text(), '" + phoneName + "')]");
+    }
+
+    //WebElements
+    WebElement phone;
+
+    //Methods
+    public ProductPage ClickOnPhone(String phoneName){
+        phone = _driver.findElement(PhoneLocator(phoneName));
+        phone.click();
+
+        return new ProductPage(_driver);
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class LaptopsPage extends HomePage{
+    public LaptopsPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    public By LaptopLocator(String laptopName){
+
+        return By.xpath("//h4[@class=\"card-title\"]/a[contains(text(), '" + laptopName + "')]");
+    }
+
+    //WebElements
+    WebElement laptop = _driver.findElement(LaptopLocator("Sony vaio i5"));
+
+    //Methods
+    public ProductPage ClickOnLaptop(WebElement element){
+        laptop.click();
+
+        return new ProductPage(_driver);
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class MonitorsPage extends HomePage{
+    public MonitorsPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    public By MonitorLocator(String monitorName){
+        return By.xpath("//h4[@class=\"card-title\"]/a[contains(text(), '" + monitorName + "')]");
+    }
+
+    //WebElements
+    WebElement monitor = _driver.findElement(MonitorLocator("ASUS FULL HD"));
+
+    //Methods
+    public ProductPage ClickOnMonitor(WebElement element){
+        monitor.click();
+        return new ProductPage(_driver);
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class CartPage extends BasePage{
+    public CartPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    By placeOrderLocator = By.xpath("//button[contains(text(), 'Place Order')]");
+
+    //WebElements
+    WebElement placeOrderButton = _driver.findElement(placeOrderLocator);
+
+    //Methods
+    public void PlaceOrder(){
+        placeOrderButton.click();
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import java.util.List;
+
+public class PlaceOrderPopUpPage extends BasePage{
+    public PlaceOrderPopUpPage(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    By nameLocator = By.id("name");
+    By countryLocator = By.xpath("//input[@id=\"country\"]");
+    By cityLocator = By.xpath("//input[@id=\"city\"]");
+    By creditLocator = By.xpath("//input[@id=\"card\"]");
+    By monthLocator = By.xpath("//input[@id=\"month\"]");
+    By yearLocator = By.xpath("//input[@id=\"year\"]");
+    By purchaseButtonLocator = By.xpath("//button[@onclick=\"purchaseOrder()\"]");
+
+    //WebElements
+    WebElement nameInput = _driver.findElement(nameLocator);
+    WebElement countryInput = _driver.findElement(countryLocator);
+    WebElement cityInput = _driver.findElement(cityLocator);
+    WebElement creditInput = _driver.findElement(creditLocator);
+    WebElement monthInput = _driver.findElement(monthLocator);
+    WebElement yearInput = _driver.findElement(yearLocator);
+    WebElement purchaseButton = _driver.findElement(purchaseButtonLocator);
+
+    //Methods
+    public void fillOrderDetails (String name, String country, String city, String cardNumber, int month, int year) {
+        actions.moveToElement(nameInput).sendKeys(name).build().perform();
+        actions.moveToElement(countryInput).sendKeys(country).build().perform();
+        actions.moveToElement(cityInput).sendKeys(city).build().perform();
+        actions.moveToElement(creditInput).sendKeys(cardNumber).build().perform();
+        actions.moveToElement(monthInput).sendKeys(String.valueOf(month)).build().perform();
+        actions.moveToElement(yearInput).sendKeys(String.valueOf(year)).build().perform();
+    }
+
+    public void ClickPurchase() {
+        actions.moveToElement(purchaseButton).click().build().perform();
+    }
+
+    By orderSuccessfulMessageLocator = By.xpath("//*[contains(text(), \"Thank you for your purchase!\")]");
+    List<WebElement> orderSuccessfulMessage = _driver.findElements(orderSuccessfulMessageLocator);
+
+    public boolean OrderSuccessfulMessageIsDisplayed() {
+        return orderSuccessfulMessage.get(0).isDisplayed();
+    }
+}
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+package Pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class OrderSuccessfulPage extends BasePage {
+    public OrderSuccessfulPage(WebDriver driver) {
+        super(driver);
+    }
+
+    By orderSuccessfulMessageLocator = By.xpath("button[contains(text(), \"Thank yor for your purchase\"))]");
+    WebElement orderSuccessfulMessage = _driver.findElement(orderSuccessfulMessageLocator);
+
+    public boolean OrderSuccessfulMessageIsDisplayed() {
+        return orderSuccessfulMessage.isDisplayed();
+    }
+}
