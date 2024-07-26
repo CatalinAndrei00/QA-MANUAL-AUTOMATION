@@ -1,0 +1,253 @@
+package SaucedemoPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class LogInSaucedemo extends BasePageSaucedemo {
+
+    public LogInSaucedemo(WebDriver _driver) {
+        super(_driver);
+    }
+
+    //locator
+    By usernameLocator = By.id("user-name");
+    By passwordLocator = By.id("password");
+    By logInLocator = By.id("login-button");
+
+    //method
+    public void LogIn() throws InterruptedException {
+        WebElement usernameCasuta = _driver.findElement(usernameLocator);
+        WebElement passwordCasuta = _driver.findElement(passwordLocator);
+        WebElement logInButton = _driver.findElement(logInLocator);
+        usernameCasuta.click();
+        usernameCasuta.sendKeys(username);
+        Thread.sleep(2000);
+        passwordCasuta.click();
+        passwordCasuta.sendKeys(password);
+        Thread.sleep(2000);
+        logInButton.click();
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+package SaucedemoPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class LogOutSaucedemo extends BasePageSaucedemo{
+
+    public LogOutSaucedemo(WebDriver _driver) {
+        super(_driver);
+    }
+
+    //locators
+    By treiLiniiLocator = By.id("react-burger-menu-btn");
+    By logOutLocator = By.id("logout_sidebar_link");
+
+    //methods
+    public void LogOut() throws InterruptedException {
+        WebElement treiLiniiButton = _driver.findElement(treiLiniiLocator);
+        WebElement logOutButton = _driver.findElement(logOutLocator);
+        Thread.sleep(2000);
+        treiLiniiButton.click();
+        Thread.sleep(2000);
+        logOutButton.click();
+        Thread.sleep(1000);
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+package SaucedemoPages;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import java.util.List;
+
+public class HomePageSaucedemo extends BasePageSaucedemo {
+
+    public HomePageSaucedemo(WebDriver _driver) {
+        super(_driver);
+    }
+
+    //method
+    public void AddToCart() throws InterruptedException {
+
+        List<WebElement> toateProdusele = _driver.findElements(By.xpath("//div[@class='inventory_item']"));
+
+        for (WebElement produs : toateProdusele) {
+            WebElement produsNume = produs.findElement(By.className("inventory_item_name"));
+            String produsText = produsNume.getText();
+
+            if (produsText.contains("Sauce Labs Backpack"))  {
+                WebElement addToCartButton = produs.findElement(By.xpath("//button[contains(text(),\"Add to cart\")]"));
+                addToCartButton.click();
+                Thread.sleep(2000);
+                break;
+            }
+        }
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+package SaucedemoPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class AddToCartSaucedemo extends BasePageSaucedemo {
+
+    public AddToCartSaucedemo(WebDriver _driver) {
+        super(_driver);
+    }
+
+    //locators
+    By shopCartLocator = By.xpath("//a[@class=\"shopping_cart_link\"]");
+    By checkOutLocator = By.xpath("//button[contains(text(),\"Checkout\")]");
+
+    //methods
+    public void CheckCart() throws InterruptedException {
+        WebElement shopCartButton = _driver.findElement(shopCartLocator);
+        shopCartButton.click();
+        Thread.sleep(3000);
+    }
+
+    public void Checkout () throws InterruptedException {
+        WebElement checkOutButton = _driver.findElement(checkOutLocator);
+        checkOutButton.click();
+        Thread.sleep(2000);
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+package SaucedemoPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class PlaceOrderSaucedemo extends BasePageSaucedemo {
+
+    public PlaceOrderSaucedemo(WebDriver _driver) {
+        super(_driver);
+    }
+
+    //locators
+    By firstNameLocator = By.id("first-name");
+    By lastNameLocator = By.id("last-name");
+    By postalCodeLocator = By.id("postal-code");
+    By continueLocator = By.id("continue");
+    By finishLocator = By.id("finish");
+
+    //method
+    public void FillFields (String firstName, String lastName, int postalCode) throws InterruptedException {
+        WebElement firstNameField = _driver.findElement(firstNameLocator);
+        WebElement lastNameField = _driver.findElement(lastNameLocator);
+        WebElement postalCodeField = _driver.findElement(postalCodeLocator);
+        WebElement continueButton = _driver.findElement(continueLocator);
+        firstNameField.click();
+        firstNameField.sendKeys(firstName);
+        Thread.sleep(1000);
+        lastNameField.click();
+        lastNameField.sendKeys(lastName);
+        Thread.sleep(1000);
+        postalCodeField.click();
+        postalCodeField.sendKeys(String.valueOf(postalCode));
+        Thread.sleep(1000);
+        continueButton.click();
+
+    }
+
+    public void FinishOrder () throws InterruptedException {
+        WebElement finishButton = _driver.findElement(finishLocator);
+        Thread.sleep(2000);
+        finishButton.click();
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+package SaucedemoPages;
+
+import org.openqa.selenium.WebDriver;
+
+public class BasePageSaucedemo {
+
+    public WebDriver _driver;
+
+    public BasePageSaucedemo(WebDriver _driver) {
+        this._driver = _driver;
+    }
+
+    //connect
+    String username = "standard_user";
+    String password = "secret_sauce";
+
+    //methods
+    public void GoTo(String url) {
+        _driver.get(url);
+    }
+
+    public LogInSaucedemo logInSaucedemo() throws InterruptedException {
+        return new LogInSaucedemo(_driver);
+    }
+
+    public LogOutSaucedemo logOutSaucedemo () {
+        return new LogOutSaucedemo(_driver);
+    }
+
+    public AddToCartSaucedemo addToCartSaucedemo() throws InterruptedException {
+        HomePageSaucedemo homePageSaucedemo = new HomePageSaucedemo(_driver);
+        homePageSaucedemo.AddToCart();
+        return new AddToCartSaucedemo(_driver);
+    }
+
+    public PlaceOrderSaucedemo placeOrderSaucedemo() {
+        return new PlaceOrderSaucedemo(_driver);
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+import SaucedemoPages.*;
+import org.testng.annotations.Test;
+
+public class RunSaucedemo extends BaseTest {
+
+    @Test
+    public void TestSaucedemo() throws InterruptedException {
+
+    //definire pagini
+        BasePageSaucedemo basePageSaucedemo = new BasePageSaucedemo(driver);
+        HomePageSaucedemo homePageSaucedemo = new HomePageSaucedemo(driver);
+        LogInSaucedemo logInSaucedemo;
+        LogOutSaucedemo logOutSaucedemo;
+        AddToCartSaucedemo addToCartSaucedemo;
+        PlaceOrderSaucedemo placeOrderSaucedemo;
+
+    //cautare web
+        basePageSaucedemo.GoTo(ConfigSaucedemo.url);
+
+    //rulare
+        basePageSaucedemo.logInSaucedemo().LogIn();
+        logOutSaucedemo = basePageSaucedemo.logOutSaucedemo();
+        logOutSaucedemo.LogOut();
+        logInSaucedemo = basePageSaucedemo.logInSaucedemo();
+        logInSaucedemo.LogIn();
+        homePageSaucedemo.AddToCart();
+        addToCartSaucedemo = basePageSaucedemo.addToCartSaucedemo();
+        addToCartSaucedemo.CheckCart();
+        addToCartSaucedemo.Checkout();
+        placeOrderSaucedemo = basePageSaucedemo.placeOrderSaucedemo();
+        placeOrderSaucedemo.FillFields("firstname","lastname",11111);
+        placeOrderSaucedemo.FinishOrder();
+    }
+}
+
