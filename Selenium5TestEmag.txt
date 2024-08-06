@@ -1,0 +1,288 @@
+import org.openqa.selenium.WebDriver;
+
+public class WebDriverContext {
+    /** The driverinstance. */
+    private static InheritableThreadLocal<WebDriver> driverinstance = new InheritableThreadLocal<>();
+
+
+    /**
+     * Gets the driver.
+     *
+     * @return the driver
+     */
+    public static WebDriver getDriver() {
+        if (driverinstance.get() == null)
+            throw new IllegalStateException(
+                    "WebDriver has not been set, Please set WebDriver instance by WebDriverContext.setDriver...");
+        else
+            return driverinstance.get();
+    }
+
+    /**
+     * Sets the driver.
+     *
+     * @param driver the new driver
+     */
+    public static void setDriver(WebDriver driver) {
+        driverinstance.set(driver);
+    }
+
+    /**
+     * Removes the driver.
+     */
+    public static void removeDriver() {
+        driverinstance.remove();
+    }
+}
+
+............................................................................................................................................................................
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+public class BaseTest {
+    Random random = new Random();
+
+    /** The driver. */
+    protected WebDriver driver;
+    protected Wait<WebDriver> wait = new FluentWait<>(driver).withTimeout(Duration.ofSeconds(15))
+            .ignoring(NoSuchElementException.class)
+            .ignoring(StaleElementReferenceException.class);
+
+    /**
+     * Setup.
+     */
+    @BeforeTest
+    protected void setup() {
+//		System.setProperty("webdriver.chrome.driver", Constants.CHROME_DRIVER_PATH);
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions ops = new ChromeOptions();
+        //ops.addArguments("disable-infobars");
+        driver = new ChromeDriver(ops);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        WebDriverContext.setDriver(driver);
+    }
+
+    /**
+     * Wrap up.
+     */
+    @AfterTest
+    public void wrapUp() {
+        WebDriverContext.removeDriver();
+    }
+}
+
+............................................................................................................................................................................
+
+import EmagPages.BasePageEmag;
+import EmagPages.HomePageEmag;
+import EmagPages.LaptopAccesoriiEmag;
+import EmagPages.LaptopEmag;
+import SaucedemoPages.HomePageSaucedemo;
+import org.testng.annotations.Test;
+
+public class RunEmag extends BaseTest {
+
+    @Test
+    public void TestEmag() throws InterruptedException {
+
+        //definire pagini
+        BasePageEmag basePageEmag = new BasePageEmag(driver);
+        HomePageEmag homePageEmag;
+        LaptopAccesoriiEmag laptopAccesoriiEmag;
+        LaptopEmag laptopEmag;
+
+        //navigare web
+        basePageEmag.GoTo(ConfigEmag.url);
+        homePageEmag = basePageEmag.homePageEmag();
+        homePageEmag.ClickOnOfertaZilei();
+        basePageEmag.Back();
+        homePageEmag.ClickLaptopTableteTelefoane();
+        laptopAccesoriiEmag = basePageEmag.laptopAccesoriiEmag();
+        laptopAccesoriiEmag.ClickLaptopAccesorii();
+        laptopEmag = basePageEmag.laptopEmag();
+        laptopEmag.ClickLaptopuri();
+        laptopEmag.SelectiiCustom();
+        laptopEmag.SelectLaptop();
+
+    }
+}
+
+............................................................................................................................................................................
+
+public class ConfigEmag {
+
+    public static String url = "https://www.emag.ro/";
+}
+
+............................................................................................................................................................................
+
+package EmagPages;
+
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.WebDriver;
+
+public class BasePageEmag {
+
+    public WebDriver _driver;
+    public JavascriptExecutor javascriptExecutor;
+    public BasePageEmag(WebDriver _driver) {
+        this._driver = _driver;
+    }
+
+    public void GoTo(String url) {
+        _driver.get(url);
+    }
+
+    public HomePageEmag homePageEmag() throws InterruptedException {
+        return new HomePageEmag(_driver);
+    }
+
+    public LaptopAccesoriiEmag laptopAccesoriiEmag() throws InterruptedException {
+        return new LaptopAccesoriiEmag(_driver);
+    }
+
+    public LaptopEmag laptopEmag() {
+        return new LaptopEmag(_driver);
+    }
+
+    public void Back() throws InterruptedException {
+        _driver.navigate().back();
+        Thread.sleep(2000);
+    }
+
+    public void Forward() {
+        _driver.navigate().forward();
+    }
+}
+
+............................................................................................................................................................................
+
+public class ConfigEmag {
+
+    public static String url = "https://www.emag.ro/";
+}
+
+............................................................................................................................................................................
+
+package EmagPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class HomePageEmag extends BasePageEmag{
+
+    public HomePageEmag(WebDriver _driver) {
+        super(_driver);
+    }
+
+    By ofertaZileiLocator = By.xpath("//a[contains(text(),\"Oferta Zilei\")]");
+    By laptopTableteTelefoaneLocator = By.xpath("//span[contains(text(),\"Laptop, Tablete & Telefoane\")]");
+
+
+    public void ClickOnOfertaZilei() throws InterruptedException {
+        WebElement ofertaZileiButton = _driver.findElement(ofertaZileiLocator);
+        ofertaZileiButton.click();
+        Thread.sleep(6000);
+    }
+
+    public void ClickLaptopTableteTelefoane() throws InterruptedException {
+        WebElement laptopTableteTelefoaneButton = _driver.findElement(laptopTableteTelefoaneLocator);
+        laptopTableteTelefoaneButton.click();
+        Thread.sleep(2000);
+    }
+}
+
+............................................................................................................................................................................
+
+package EmagPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class LaptopAccesoriiEmag extends BasePageEmag {
+
+    public LaptopAccesoriiEmag(WebDriver _driver) {
+        super(_driver);
+    }
+
+    By laptopAccesoriiLocator = By.xpath("//a[contains(text(),\"Laptopuri si accesorii\")]");
+
+    public void ClickLaptopAccesorii() throws InterruptedException {
+        WebElement laptopAccesoriiButton = _driver.findElement(laptopAccesoriiLocator);
+        laptopAccesoriiButton.click();
+        Thread.sleep(2000);
+    }
+}
+
+............................................................................................................................................................................
+
+package EmagPages;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import java.util.List;
+
+public class LaptopEmag extends BasePageEmag {
+
+    public LaptopEmag(WebDriver _driver) {
+        super(_driver);
+    }
+
+    By laptopLocator = By.xpath("//a[@href=\"/laptopuri/c?tree_ref=2172&ref=cat_tree_91\"]");
+    By livrateDeEmagLocator = By.xpath("//a[@data-name=\"Livrate de eMAG\"]");
+    By appleBrandLocator = By.xpath("//a[@data-option-id=\"151\"]");
+    By ordinePretLocator = By.xpath("//div[@class=\"sort-control-btn-dropdown hidden-xs\"]");
+
+    public void ClickLaptopuri() throws InterruptedException {
+        WebElement laptopButton = _driver.findElement(laptopLocator);
+        laptopButton.click();
+        Thread.sleep(8000);
+    }
+
+    public void SelectiiCustom () throws InterruptedException {
+        WebElement livrateDeEmagButton = _driver.findElement(livrateDeEmagLocator);
+        livrateDeEmagButton.click();
+        Thread.sleep(4000);
+
+        WebElement appleBrandButton = _driver.findElement(appleBrandLocator);
+        appleBrandButton.click();
+        Thread.sleep(4000);
+    }
+
+    public void SelectLaptop() throws InterruptedException {
+
+                WebElement ordinePretButton = _driver.findElement(ordinePretLocator);
+                ordinePretButton.click();
+                Thread.sleep(3000);
+
+            try {
+                List<WebElement> toateAlegerile = _driver.findElements(By.className("dropdown-menu"));
+                for(WebElement alegeriOrdoneaza : toateAlegerile) {
+                    String alegereOrdoneazaText = alegeriOrdoneaza.findElement(By.className("js-sort-option")).getText();
+                   alegereOrdoneazaText.contains("Pret descrescator");
+                   alegeriOrdoneaza.click();
+
+                }
+            } catch (Exception e){}
+
+            WebElement firstLaptop = _driver.findElement(By.xpath("//a[@class=\"card-v2-title semibold mrg-btm-xxs js-product-url\"]"));
+            firstLaptop.click();
+    }
+}
