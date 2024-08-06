@@ -1,0 +1,132 @@
+MAIN
+
+import java.util.ArrayList;
+
+public class Main {
+    private static Object String;
+
+    public static void main(String[] args) {
+
+        // Creez carti pentru biblioteca
+        CarteFizica carte = new CarteFizica("Liviu Rebreanu","Ion",352);
+        CarteFizica carte1 = new CarteFizica("Mihail Sadoveanu","Baltagul",333);
+
+        CarteElectronica carte2 = new CarteElectronica("Mihai Eminescu", "Luceafarul", "200MB");
+        CarteElectronica carte3 = new CarteElectronica("Ion Creanga", "Amintiri din Copilarie", "402MB");
+
+        //Adaug cartile in biblioteca
+        Biblioteca biblioteca = new Biblioteca();
+        biblioteca.adaugaCarte(carte);
+        biblioteca.adaugaCarte(carte1);
+        biblioteca.adaugaCarte(carte2);
+        biblioteca.adaugaCarte(carte3);
+
+        biblioteca.afisareDetaliiToateCartile();
+    }
+}
+
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CARTE
+
+public abstract class Carte {
+
+    private String titlu;
+    private String autor;
+
+    public Carte() {
+    }
+
+    abstract void afisareDetalii();
+
+    // introduc getters si setters pentru a putea seta si gasi variabilele mele private
+    public String getAutor() {
+        return autor;
+    }
+
+    public String getTitlu() {
+        return titlu;
+    }
+
+    public void setAutor(String autor) {
+        this.autor = autor;
+    }
+
+    public void setTitlu(String titlu) {
+        this.titlu = titlu;
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CARTE FIZICA
+
+public class CarteFizica extends Carte {
+
+    private int numarPagini;
+
+    public CarteFizica(String autor, String titlu, int numarPagini) {
+        setAutor(autor);
+        setTitlu(titlu);
+        this.numarPagini = numarPagini;
+    }
+
+    @Override
+    void afisareDetalii() {
+        System.out.println("Numele autorului este: " + getAutor());
+        System.out.println("Numele titlului este: " + getTitlu());
+        System.out.println("Numarul de pagini este: " + numarPagini);
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+CARTE ELECTRONICA
+
+public class CarteElectronica extends Carte {
+
+    private String dimensiuneFisier;
+
+    public CarteElectronica(String autor, String titlu, String dimensiuneFisier) {
+        setAutor(autor);
+        setTitlu(titlu);
+        this.dimensiuneFisier = dimensiuneFisier;
+    }
+
+    @Override
+    void afisareDetalii() {
+        System.out.println("Numele autorului este: " + getAutor());
+        System.out.println("Numele titlului este: " + getTitlu());
+        System.out.println("Dimensiunea fisierului este: " + dimensiuneFisier);
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+BIBLIOTECA
+
+import java.util.*;
+
+public class Biblioteca {
+
+    public Biblioteca() {
+    }
+
+    public void afisareDetaliiToateCartile() {
+        for (Carte carte : listaCarti) {
+            carte.afisareDetalii();
+        }
+    }
+
+    //Creez lista de carti
+    private ArrayList <Carte> listaCarti = new ArrayList<>();
+
+    public ArrayList<Carte> getListaCarti() {
+        return listaCarti;
+    }
+
+    public void setListaCarti(ArrayList<Carte> listaCarti) {
+        this.listaCarti = listaCarti;
+    }
+
+    public void adaugaCarte(Carte carte) {
+        listaCarti.add(carte);
+    }
+}

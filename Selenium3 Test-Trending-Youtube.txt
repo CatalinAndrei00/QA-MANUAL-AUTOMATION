@@ -1,0 +1,254 @@
+import org.openqa.selenium.WebDriver;
+
+public class WebDriverContext {
+    /** The driverinstance. */
+    private static InheritableThreadLocal<WebDriver> driverinstance = new InheritableThreadLocal<>();
+
+
+    /**
+     * Gets the driver.
+     *
+     * @return the driver
+     */
+    public static WebDriver getDriver() {
+        if (driverinstance.get() == null)
+            throw new IllegalStateException(
+                    "WebDriver has not been set, Please set WebDriver instance by WebDriverContext.setDriver...");
+        else
+            return driverinstance.get();
+    }
+
+    /**
+     * Sets the driver.
+     *
+     * @param driver the new driver
+     */
+    public static void setDriver(WebDriver driver) {
+        driverinstance.set(driver);
+    }
+
+    /**
+     * Removes the driver.
+     */
+    public static void removeDriver() {
+        driverinstance.remove();
+    }
+}
+
+............................................................................................................................................................................
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+public class BaseTest {
+    Random random = new Random();
+
+    /** The driver. */
+    protected WebDriver driver;
+    protected Wait<WebDriver> wait = new FluentWait<>(driver).withTimeout(Duration.ofSeconds(15))
+            .ignoring(NoSuchElementException.class)
+            .ignoring(StaleElementReferenceException.class);
+
+    /**
+     * Setup.
+     */
+    @BeforeTest
+    protected void setup() {
+//		System.setProperty("webdriver.chrome.driver", Constants.CHROME_DRIVER_PATH);
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions ops = new ChromeOptions();
+        //ops.addArguments("disable-infobars");
+        driver = new ChromeDriver(ops);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        WebDriverContext.setDriver(driver);
+    }
+
+    /**
+     * Wrap up.
+     */
+    @AfterTest
+    public void wrapUp() {
+        WebDriverContext.removeDriver();
+    }
+}
+
+............................................................................................................................................................................
+
+package YoutubePages;
+
+import Pages.HomePage;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Action;
+import org.openqa.selenium.interactions.Actions;
+
+public class BasePageYT {
+
+    public WebDriver _driver;
+    public Actions actions;
+    public JavascriptExecutor javascriptExecutor;
+    public HomeYT homeYT;
+
+
+    public BasePageYT(WebDriver driver){
+        this._driver = driver;
+        javascriptExecutor = (JavascriptExecutor) _driver;
+        actions = new Actions(driver);
+    }
+
+    //open browser and navigate
+    public void GoTo(String url){
+        _driver.get(url);
+    }
+
+
+    public TrendingYT trendingYT() throws InterruptedException {
+        HomeYT homeYT = new HomeYT(_driver);
+        homeYT.clickOnTrending();
+        return new TrendingYT(_driver);
+    }
+
+
+    public void RefreshPage() {
+        _driver.navigate().refresh();
+    }
+
+    public void Back() {
+        javascriptExecutor.executeScript("history.back()");
+    }
+
+    public void Forward() {
+        javascriptExecutor.executeScript("history.forward()");
+    }
+
+    public void JSCLick(WebElement element){
+        javascriptExecutor.executeScript("arguments[0].click();", element);
+    }
+
+}
+
+............................................................................................................................................................................
+
+package YoutubePages;
+
+import Pages.BasePage;
+import com.fasterxml.jackson.databind.ser.Serializers;
+import org.openqa.selenium.*;
+import org.openqa.selenium.interactions.Actions;
+
+public class HomeYT extends BasePageYT{
+
+    public HomeYT(WebDriver _driver) {
+        super(_driver);
+    }
+
+
+    By acceptAllLocator = By.xpath("//button[@aria-label=\"Accept the use of cookies and other data for the purposes described\"]");
+    By trendingLocator = By.xpath("//*[contains(text(), 'Trending')]");
+
+    WebElement trendingButton = _driver.findElement(trendingLocator);
+
+
+    public void acceptAll() throws InterruptedException{
+        WebElement acceptAllClick = _driver.findElement(acceptAllLocator);
+        Thread.sleep(1000);
+        acceptAllClick.click();
+        Thread.sleep(2000);
+
+
+    }
+
+    public void clickOnTrending () throws InterruptedException {
+        Thread.sleep(2000);
+        trendingButton.click();
+        Thread.sleep(5000);
+    }
+
+
+    public void JSCLick(WebElement element){
+        javascriptExecutor.executeScript("arguments[0].click();", element);
+    }
+}
+
+............................................................................................................................................................................
+
+package YoutubePages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class TrendingYT extends BasePageYT {
+    public TrendingYT(WebDriver driver) {
+        super(driver);
+    }
+
+    //locators
+    By moviesLocator = By.xpath("//div[contains(text(), \"Movies\")]");
+    By firstvideoLocator = By.id("video-title");
+
+    //WebElement
+
+    WebElement moviesButton = _driver.findElement(moviesLocator);
+    WebElement firstVideoButton = _driver.findElement(firstvideoLocator);
+
+
+    public void clickOnMovies() throws InterruptedException {
+        moviesButton.click();
+        Thread.sleep(2000);
+
+    }
+
+    public void clickOnFirstVideo() {
+        firstVideoButton.click();
+    }
+}
+
+............................................................................................................................................................................
+
+public class ConfigYT {
+    public static String url = "https://www.youtube.com/";
+}
+
+............................................................................................................................................................................
+
+import YoutubePages.BasePageYT;
+import YoutubePages.CautareMelodie;
+import YoutubePages.HomeYT;
+import YoutubePages.TrendingYT;
+import org.testng.annotations.Test;
+
+@Test
+public class RunYT extends BaseTest {
+
+    @Test
+    public void cautaSiDaClickPePrimaCautare() throws InterruptedException {
+
+        //definire pagini
+        BasePageYT basePageYT = new BasePageYT(driver);
+        TrendingYT trendingYT;
+
+
+        //cautare web
+        basePageYT.GoTo(ConfigYT.url);
+
+        HomeYT homeYT = new HomeYT(driver);
+        homeYT.acceptAll();
+        trendingYT =basePageYT.trendingYT();
+        trendingYT.clickOnMovies();
+        trendingYT.clickOnFirstVideo();
+
+    }
+}
