@@ -1,0 +1,269 @@
+import org.openqa.selenium.WebDriver;
+
+public class WebDriverContext {
+    /** The driverinstance. */
+    private static InheritableThreadLocal<WebDriver> driverinstance = new InheritableThreadLocal<>();
+
+
+    /**
+     * Gets the driver.
+     *
+     * @return the driver
+     */
+    public static WebDriver getDriver() {
+        if (driverinstance.get() == null)
+            throw new IllegalStateException(
+                    "WebDriver has not been set, Please set WebDriver instance by WebDriverContext.setDriver...");
+        else
+            return driverinstance.get();
+    }
+
+    /**
+     * Sets the driver.
+     *
+     * @param driver the new driver
+     */
+    public static void setDriver(WebDriver driver) {
+        driverinstance.set(driver);
+    }
+
+    /**
+     * Removes the driver.
+     */
+    public static void removeDriver() {
+        driverinstance.remove();
+    }
+}
+
+............................................................................................................................................................................
+
+import io.github.bonigarcia.wdm.WebDriverManager;
+import org.openqa.selenium.StaleElementReferenceException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
+import org.testng.annotations.AfterTest;
+import org.testng.annotations.BeforeTest;
+
+import java.time.Duration;
+import java.util.NoSuchElementException;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+
+public class BaseTest {
+    Random random = new Random();
+
+    /** The driver. */
+    protected WebDriver driver;
+    protected Wait<WebDriver> wait = new FluentWait<>(driver).withTimeout(Duration.ofSeconds(15))
+            .ignoring(NoSuchElementException.class)
+            .ignoring(StaleElementReferenceException.class);
+
+    /**
+     * Setup.
+     */
+    @BeforeTest
+    protected void setup() {
+//		System.setProperty("webdriver.chrome.driver", Constants.CHROME_DRIVER_PATH);
+        WebDriverManager.chromedriver().setup();
+        ChromeOptions ops = new ChromeOptions();
+        //ops.addArguments("disable-infobars");
+        driver = new ChromeDriver(ops);
+        driver.manage().window().maximize();
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        WebDriverContext.setDriver(driver);
+    }
+
+    /**
+     * Wrap up.
+     */
+    @AfterTest
+    public void wrapUp() {
+        WebDriverContext.removeDriver();
+    }
+}
+
+............................................................................................................................................................................
+
+import SheinPages.AddToCartShein;
+import SheinPages.AddToCartShein;
+import SheinPages.BasePageShein;
+import SheinPages.HomePageShein;
+import SheinPages.MenClothingShein;
+import org.testng.annotations.Test;
+
+public class RunShein extends BaseTest {
+
+    @Test
+    public void TestShein() throws InterruptedException {
+
+        //pages
+        BasePageShein basePageShein = new BasePageShein(driver);
+        HomePageShein homePageShein;
+        MenClothingShein menClothingShein;
+        AddToCartShein addToCartShein;
+
+        //navigate
+        basePageShein.GoTo(ConfigShein.url);
+
+        homePageShein = basePageShein.homePageShein();
+        homePageShein.MenClothingClick();
+        menClothingShein = basePageShein.menClothingShein();
+        menClothingShein.ClickOnAProduct();
+        addToCartShein = basePageShein.addToCartShein();
+        addToCartShein.ClickMarime();
+        basePageShein.Refresh();
+        addToCartShein.ClickAddToCart();
+    }
+}
+
+............................................................................................................................................................................
+
+public class ConfigShein {
+
+    public static String url ="https://euqs.shein.com/";
+}
+
+............................................................................................................................................................................
+
+package SheinPages;
+
+import EmagPages.BasePageEmag;
+import org.openqa.selenium.WebDriver;
+
+public class BasePageShein {
+
+    public WebDriver _driver;
+
+    public BasePageShein(WebDriver _driver) {
+        this._driver = _driver;
+    }
+
+    public void Back() throws InterruptedException {
+        _driver.navigate().back();
+        Thread.sleep(2000);
+    }
+
+    public void Refresh() {
+        _driver.navigate().refresh();
+    }
+
+    public void GoTo(String url){
+        _driver.get(url);
+    }
+
+    public HomePageShein homePageShein() {
+        return new HomePageShein(_driver);
+    }
+
+    public MenClothingShein menClothingShein () {
+        return new MenClothingShein(_driver);
+    }
+
+    public AddToCartShein addToCartShein() {
+        return new AddToCartShein(_driver);
+    }
+}
+
+............................................................................................................................................................................
+
+package SheinPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+public class HomePageShein extends BasePageShein {
+
+    public HomePageShein(WebDriver _driver) {
+        super(_driver);
+    }
+
+By menClothingLocator = By.xpath("//a[contains(text(),\"Men Clothing\")]");
+
+WebElement menClothingButton = _driver.findElement(menClothingLocator);
+
+    public void MenClothingClick() throws InterruptedException {
+        Thread.sleep(4000);
+        try {
+            WebElement popUpReclama1 = _driver.findElement(By.xpath("//span[@class=\"sui-icon-common__wrap she-close homepage-she-close\"]"));
+            popUpReclama1.click();
+
+        } catch (Exception e) {
+            // daca nu este asta primul pop-ul atunci il ignora si merge mai departe
+        }
+
+        try {
+            WebElement popUpReclama2 = _driver.findElement(By.xpath("//span[@class=\"sui-icon-common__wrap btn-default btn-newuser\"]"));
+            popUpReclama2.click();
+        } catch (Exception e) {
+            // daca nu este asta primul pop-ul atunci il ignora si merge mai departe
+        }
+
+        try {
+            WebElement popUpReclama3 = _driver.findElement(By.className("btn-new"));
+            popUpReclama3.click();
+        } catch (Exception e) {}
+
+        Thread.sleep(2000);
+        menClothingButton.click();
+        Thread.sleep(10000);
+    }
+}
+
+............................................................................................................................................................................
+
+package SheinPages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import java.util.List;
+
+public class MenClothingShein extends BasePageShein{
+
+    public MenClothingShein(WebDriver _driver) {
+        super(_driver);
+    }
+
+    By productLocator = By.xpath("//button[@aria-label=\"ADD TO CART\"]");
+
+    public void ClickOnAProduct() throws InterruptedException {
+            WebElement productClick = _driver.findElement(productLocator);
+            productClick.click();
+            Thread.sleep(2000);
+        }
+}
+
+............................................................................................................................................................................
+
+package SheinPages;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import java.util.List;
+
+public class AddToCartShein extends BasePageShein {
+
+    public AddToCartShein (WebDriver _driver) {
+        super(_driver);
+    }
+
+        public void ClickMarime () throws InterruptedException {
+
+                WebElement marimeXS = _driver.findElement(By.xpath("//div[@aria-label=\"XS\"]"));
+                marimeXS.click();
+                Thread.sleep(2000);
+        }
+//
+        public void ClickAddToCart () throws InterruptedException {
+            WebElement addtocart = _driver.findElement(By.xpath("//div[@class=\"button-box\"]"));
+            addtocart.click();
+            Thread.sleep(2000);
+            //Numai ca pe site pica ADD TO CART-ul and apas pe el da FAILED
+        }
+}
